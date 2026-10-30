@@ -18,7 +18,7 @@ async function cloudRequest(method,payload){
 }
 function installTripMetadata(doc){TRIP_DAYS.splice(0,TRIP_DAYS.length,...doc.tripDays);TRAVEL_NOTES.splice(0,TRAVEL_NOTES.length,...doc.travelNotes);if(!TRIP_DAYS.some(d=>d.date===selected))selected=TRIP_DAYS.find(d=>d.date===todayJapan())?.date||TRIP_DAYS[0].date;}
 function rememberCloud(){try{localStorage.setItem(roomCache(),JSON.stringify({base:Cloud.base,local:state,dirty:Cloud.base&&JSON.stringify(state)!==JSON.stringify(Cloud.base)}));localStorage.setItem('kansai-last-trip',Cloud.key);}catch{}}
-function cloudApply(doc,revision){installTripMetadata(doc);state=validateBackup(doc);Cloud.base=clone(state);Cloud.revision=revision;Cloud.error='';rememberCloud();if(!$('#sheet').open)render();cloudPaint();}
+function cloudApply(doc,revision){if(Cloud.base)TripUpdates.compare(Cloud.base,doc,state);installTripMetadata(doc);state=validateBackup(doc);Cloud.base=clone(state);Cloud.revision=revision;Cloud.error='';rememberCloud();if(!$('#sheet').open)render();cloudPaint();}
 function showCloudConflict(){
  if(!Cloud.conflict)return;
  if($('#sheet').open){toast('有共編衝突，關閉表單後點上方同步狀態處理');return;}
@@ -43,6 +43,7 @@ async function cloudFlush(){
  const sent=clone(state),base=clone(Cloud.base);
  try{
   const reply=await cloudRequest('PUT',{base,state:sent});
+  TripUpdates.compare(base,reply.state,sent);
   const merged=CloudMerge.mergeTrip(sent,state,reply.state);
   // Local edits made while the request was in flight remain queued.
   if(merged.conflicts.length){Cloud.conflict={base:sent,remote:reply.state,revision:reply.revision,paths:merged.conflicts};Cloud.pending=true;}
@@ -50,6 +51,7 @@ async function cloudFlush(){
  }catch(error){
   Cloud.pending=true;
   if(error.status===409&&error.result?.state){
+   TripUpdates.compare(base,error.result.state,state);
    const merged=CloudMerge.mergeTrip(base,state,error.result.state);
    if(merged.conflicts.length)Cloud.conflict={base,remote:error.result.state,revision:error.result.revision,paths:merged.conflicts};
    else{state=validateBackup(merged.state);Cloud.base=clone(error.result.state);Cloud.revision=error.result.revision;}
@@ -91,10 +93,10 @@ async function cloudBoot(){
  const gate=document.createElement('div');gate.id='cloud-gate';gate.className='cloud-gate';gate.innerHTML='<div class="cloud-welcome"><span class="brand-mark">旅</span><h2>正在打開你們的旅程…</h2><p>連接同行朋友的最新安排</p></div>';document.body.append(gate);
  let key=new URLSearchParams(location.hash.slice(1)).get('trip');if(!key){try{key=localStorage.getItem('kansai-last-trip')}catch{}}
  if(!/^[a-f0-9]{64}$/.test(key||'')){joinScreen('貼上共編連結，和同行朋友一起安排行程。');return;}
- Cloud.key=key;location.hash='trip='+key;
+ Cloud.key=key;TripUpdates.load();location.hash='trip='+key;
  try{
   let outbox=null;try{outbox=JSON.parse(localStorage.getItem(roomCache())||'null')}catch{}
-  const reply=await cloudRequest('GET');installTripMetadata(reply.state);Cloud.ready=true;
+  const reply=await cloudRequest('GET');if(outbox?.base)TripUpdates.compare(outbox.base,reply.state,outbox.local||outbox.base);installTripMetadata(reply.state);Cloud.ready=true;
   if(outbox?.dirty&&CloudMerge.validTrip(outbox.base)&&CloudMerge.validTrip(outbox.local)){
    const merged=CloudMerge.mergeTrip(outbox.base,outbox.local,reply.state);
    Cloud.base=clone(reply.state);Cloud.revision=reply.revision;Cloud.pending=true;
@@ -105,6 +107,7 @@ async function cloudBoot(){
   gate.remove();
  }
  catch(error){joinScreen(error.status===404||error.status===401?'這個旅程連結無法使用，請向同行朋友取得完整連結。':'暫時連不上雲端，請確認網路後重新開啟連結。');return;}
+ const updates=document.createElement('button');updates.id='trip-updates-button';updates.className='btn updates-button';updates.onclick=TripUpdates.open;$('.top-actions').prepend(updates);TripUpdates.decorate();
  const share=document.createElement('button');share.id='share-trip';share.className='btn cloud-share';share.innerHTML=icon('plane')+'<span>邀請同行</span>';share.onclick=shareTrip;$('.top-actions').prepend(share);
  $('#save-state').onclick=()=>Cloud.conflict?showCloudConflict():Cloud.pending?cloudFlush():cloudPoll();
  $('#save-state').onkeydown=e=>{if(e.key==='Enter')$('#save-state').click();};
