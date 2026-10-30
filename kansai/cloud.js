@@ -23,7 +23,7 @@ function showCloudConflict(){
  if(!Cloud.conflict)return;
  if($('#sheet').open){toast('有共編衝突，關閉表單後點上方同步狀態處理');return;}
  const names={title:'名稱',start:'開始時間',end:'結束時間',date:'日期',location:'地點',note:'備註',done:'完成狀態',status:'時間狀態',hotel:'飯店',hotelAddress:'飯店地址'};
- const fields=[...new Set(Cloud.conflict.paths.map(p=>(p.startsWith('.settings.booking_')?'住宿或航班資料':names[p.split('.').pop()]||'同一個行程')))];
+ const fields=[...new Set(Cloud.conflict.paths.map(p=>(p.startsWith('.settings.voucher_')?'票券與憑證':p.startsWith('.settings.booking_')?'住宿或航班資料':names[p.split('.').pop()]||'同一個行程')))];
  openSheet('你們修改了相同的內容',`<p class="confirm-msg">你和朋友都改了：<strong>${esc(fields.join('、'))}</strong>。其他不同欄位的修改會自動合併。請選擇這些相同欄位要保留哪一邊。</p><div class="sheet-actions"><button class="btn" id="cloud-use-remote">採用朋友的修改</button><button class="btn primary" id="cloud-use-mine">保留我的修改</button></div>`);
  $('#cloud-use-remote').onclick=()=>resolveCloudConflict(false);$('#cloud-use-mine').onclick=()=>resolveCloudConflict(true);
 }

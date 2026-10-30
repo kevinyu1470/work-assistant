@@ -62,5 +62,5 @@ const Bookings=(()=>{
  document.addEventListener('change',e=>{if(e.target.id==='booking-image')imageFile(e.target.files[0]);});
  document.addEventListener('submit',e=>{if(e.target.id==='booking-form'){e.preventDefault();submit(e.target);}});
  document.getElementById('sheet').addEventListener('close',stop);
- return {panel,cards,list,edit,requestDelete};
+ return {panel,cards,list,edit,requestDelete,getOCR:loadLibrary};
 })();
