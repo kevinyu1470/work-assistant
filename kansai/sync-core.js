@@ -4,6 +4,11 @@ const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
 const object=o=>o!==null&&typeof o==='object'&&!Array.isArray(o);
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 function mergeTrip(base,mine,theirs){
+ // Older app versions omit unknown booking keys; deletion requires an explicit empty string.
+ if(object(mine?.settings)&&object(theirs?.settings)){
+  mine={...mine,settings:{...mine.settings}};
+  for(const [k,v] of Object.entries(theirs.settings))if(/^booking_[a-zA-Z0-9_-]+$/.test(k)&&mine.settings[k]===undefined)mine.settings[k]=v;
+ }
  const conflicts=[];
  function merge(b,m,t,path){
   if(same(m,b))return t;
