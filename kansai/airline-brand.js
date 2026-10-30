@@ -1,0 +1,2 @@
+'use strict';
+const AirlineBrand={mark(name){return /(?:^|\b)CI\s*\d{1,4}\b/i.test(String(name||''))||/中華航空|華航|china airlines/i.test(String(name||''))?'<span class="airline-brand"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/China_Airlines_wordmark.svg" alt="China Airlines 中華航空" loading="lazy" referrerpolicy="no-referrer" onerror="this.hidden=true"><small>中華航空</small></span>':'';}};
