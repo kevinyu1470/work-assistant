@@ -12,7 +12,7 @@ let storageProblem=false;
 const todayJapan=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 let selected='';
 let tab='schedule',toastTimer,lastFocus=null,pendingImport=null,lastDeleted=null;
-const NAV=[['schedule','calendar','每日行程'],['overview','grid','旅程總覽'],['routes','pin','路線導航'],['metro','train','大阪地鐵'],['tickets','ticket','票券憑證'],['prepare','bag','旅前準備'],['tips','food','美食・購物']];
+const NAV=[['schedule','calendar','每日行程'],['overview','grid','旅程總覽'],['routes','pin','每日行程導航'],['metro','train','大阪地鐵'],['tickets','ticket','票券憑證'],['prepare','bag','旅前準備'],['tips','food','美食・購物']];
 const md=date=>`${+date.slice(5,7)}/${+date.slice(8,10)}`;
 const weekday=date=>'日一二三四五六'[new Date(date+'T12:00:00+09:00').getUTCDay()];
 const dayData=date=>({...TRIP_DAYS.find(d=>d.date===date),...(state.days[date]||{})});
