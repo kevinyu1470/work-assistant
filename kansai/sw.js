@@ -1,7 +1,7 @@
-const CACHE='kansai-cloud-v19-atlas';
-const FILES=['./','./index.html','./release-update.js?v=atlas-20261108','./food-guide.js?v=unified-20261106','./updates.js?v=unified-20261106','./airline-brand.js?v=airline-20261030','./metro.js?v=atlas-20261108','./metro.css?v=atlas-20261108','./style.css?v=unified-20261106','./weather.js?v=weather-20261030','./booking-core.js?v=dashboard-20261030','./bookings.js?v=airline-20261030','./checklist.js?v=checklist-20261030','./dashboard.js?v=airline-20261030','./voucher-core.js?v=vouchers-20261030','./vouchers.js?v=vouchers-20261030','./data.js','./app.js?v=unified-20261106','./day-covers.js?v=day-covers-20261029','./config.js','./sync-core.js?v=vouchers-20261030','./cloud.js?v=unified-20261106','./autumn.svg','./icon.svg','./icon-192.png','./icon-512.png','./manifest.webmanifest'];
+const CACHE='kansai-cloud-v20-atlas';
+const FILES=['./','./index.html','./release-update.js?v=atlas-20261108b','./food-guide.js?v=unified-20261106','./updates.js?v=unified-20261106','./airline-brand.js?v=airline-20261030','./metro.js?v=atlas-20261108b','./metro.css?v=atlas-20261108b','./style.css?v=unified-20261106','./weather.js?v=weather-20261030','./booking-core.js?v=dashboard-20261030','./bookings.js?v=airline-20261030','./checklist.js?v=checklist-20261030','./dashboard.js?v=airline-20261030','./voucher-core.js?v=vouchers-20261030','./vouchers.js?v=vouchers-20261030','./data.js','./app.js?v=unified-20261106','./day-covers.js?v=day-covers-20261029','./config.js','./sync-core.js?v=vouchers-20261030','./cloud.js?v=unified-20261106','./autumn.svg','./icon.svg','./icon-192.png','./icon-512.png','./manifest.webmanifest'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)));self.skipWaiting();});
-const VERSION='atlas-20261108';
+const VERSION='atlas-20261108b';
 async function refreshWindow(client){
  if(!client.url.startsWith(self.registration.scope))return;
  try{

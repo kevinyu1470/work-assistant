@@ -1,5 +1,5 @@
 'use strict';
-(()=>{const VERSION='atlas-20261108';let running=false,needsUpdate=false;
+(()=>{const VERSION='atlas-20261108b';let running=false,needsUpdate=false;
 const safe=()=>!document.querySelector('dialog[open]')&&(typeof Cloud==='undefined'||Cloud.ready&&!Cloud.pending&&!Cloud.busy&&!Cloud.conflict);
 function offer(){if(document.getElementById('release-prompt'))return;const b=document.createElement('div');b.id='release-prompt';b.setAttribute('role','status');b.style.cssText='position:fixed;bottom:100px;left:16px;right:16px;max-width:430px;margin:auto;background:#426650;color:white;border-radius:18px;padding:16px;z-index:9999;font:13px -apple-system,sans-serif';b.innerHTML='已下載新版，儲存並關閉表單後會自動更新。';document.body.append(b);}
 function upgrade(){if(!needsUpdate||running)return;if(!safe()){offer();return;}running=true;location.reload();}
