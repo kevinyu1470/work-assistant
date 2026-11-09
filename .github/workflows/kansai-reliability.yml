@@ -5,13 +5,17 @@ on:
     paths: ['kansai/**', '.github/kansai/**', '.github/workflows/kansai-reliability.yml']
   pull_request:
     paths: ['kansai/**', '.github/kansai/**', '.github/workflows/kansai-reliability.yml']
+  workflow_run:
+    workflows: ['pages build and deployment']
+    types: [completed]
+    branches: [main]
   schedule:
     - cron: '17 * * * *'
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: kansai-reliability-${{ github.ref }}
+  group: kansai-reliability-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 jobs:
   regression:
@@ -23,5 +27,5 @@ jobs:
           persist-credentials: false
       - run: node .github/kansai/tests/run.mjs
       - name: Check public production assets and sync gateway
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
         run: node .github/kansai/scripts/check-live.mjs
