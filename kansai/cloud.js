@@ -25,13 +25,13 @@ function verified(){Cloud.verified=true;Cloud.lastVerifiedAt=new Date().toISOStr
 function failed(error){Cloud.verified=false;Cloud.failures++;Cloud.retryAt=Date.now()+Math.min(60000,2000*2**Math.min(Cloud.failures,5))+Math.random()*1000;Cloud.fatal=[400,401,404,413].includes(error.status);Cloud.error=error.status===401||error.status===404?'旅程連結無法驗證 · 本機資料仍保留':error.status===400||error.status===413?'資料無法送出 · 請點此匯出備份':navigator.onLine?'連線中斷 · 保留修改，稍後重試':'離線 · 顯示已下載行程，修改稍後同步';}
 function cloudApply(doc,revision){
  if(revision<Cloud.revision)return false;
- const checked=validateBackup(doc);if(Cloud.base)TripUpdates.compare(Cloud.base,checked,state);installTripMetadata(checked);state=checked;Cloud.base=clone(checked);Cloud.revision=revision;verified();rememberCloud();if(!$('#sheet').open)render();cloudPaint();return true;
+ const checked=validateBackup(doc);if(Cloud.base)TripUpdates.compare(Cloud.base,checked,state);installTripMetadata(checked);state=checked;Cloud.base=clone(checked);Cloud.revision=revision;verified();rememberCloud();if(!$('#sheet').open){if((typeof EventOrder!=='undefined'&&EventOrder.active()))EventOrder.refreshAfterDrag();else render();}cloudPaint();return true;
 }
 function showCloudConflict(){
  if(!Cloud.conflict)return;
  if($('#sheet').open){toast('有共編衝突，關閉表單後點上方同步狀態處理');return;}
  const names={title:'名稱',start:'開始時間',end:'結束時間',date:'日期',location:'地點',note:'備註',done:'完成狀態',status:'時間狀態',hotel:'飯店',hotelAddress:'飯店地址'};
- const fields=[...new Set(Cloud.conflict.paths.map(p=>(p.startsWith('.settings.voucher_')?'票券與憑證':p.startsWith('.settings.booking_')?'住宿或航班資料':names[p.split('.').pop()]||'同一個行程')))];
+ const fields=[...new Set(Cloud.conflict.paths.map(p=>(p.startsWith('.settings.event_order_')?'每日行程順序':p.startsWith('.settings.expense_')?'旅費支出':p.startsWith('.settings.voucher_')?'票券與憑證':p.startsWith('.settings.booking_')?'住宿或航班資料':names[p.split('.').pop()]||'同一個行程')))];
  openSheet('你們修改了相同的內容',`<p class="confirm-msg">你和朋友都改了：<strong>${esc(fields.join('、'))}</strong>。不同欄位的修改會合併，以下選擇只處理衝突欄位。</p><div class="sheet-actions"><button class="btn" id="cloud-use-remote">採用雲端的修改</button><button class="btn primary" id="cloud-use-mine">保留我的修改</button></div>`);
  $('#cloud-use-remote').onclick=()=>resolveCloudConflict(false);$('#cloud-use-mine').onclick=()=>resolveCloudConflict(true);
 }
@@ -64,7 +64,7 @@ async function cloudFlush(force=false){
   const merged=CloudMerge.mergeTrip(sent,state,reply.state);
   verified();Cloud.base=clone(reply.state);Cloud.revision=reply.revision;
   if(merged.conflicts.length){Cloud.conflict={base:sent,remote:reply.state,revision:reply.revision,paths:merged.conflicts};Cloud.pending=true;}
-  else{state=validateBackup(merged.state);installTripMetadata(state);Cloud.pending=localDirty();if(!$('#sheet').open)render();}
+  else{state=validateBackup(merged.state);installTripMetadata(state);Cloud.pending=localDirty();if(!$('#sheet').open){if((typeof EventOrder!=='undefined'&&EventOrder.active()))EventOrder.refreshAfterDrag();else render();}}
  }catch(error){
   Cloud.pending=true;
   if(error.status===409&&CloudMerge.validTrip(error.result?.state)&&error.result.revision>=Cloud.revision){
@@ -76,10 +76,10 @@ async function cloudFlush(force=false){
  }finally{Cloud.busy=false;rememberCloud();cloudPaint();if(Cloud.conflict)showCloudConflict();else if(Cloud.pending&&!Cloud.error)Cloud.timer=setTimeout(()=>cloudFlush(),150);}
 }
 async function cloudPoll(force=false){
- if(!Cloud.ready||Cloud.busy||Cloud.reading||Cloud.pending||Cloud.conflict||$('#sheet').open||document.hidden||(!force&&(Cloud.fatal||Date.now()<Cloud.retryAt)))return;
+ if((typeof EventOrder!=='undefined'&&EventOrder.active())||!Cloud.ready||Cloud.busy||Cloud.reading||Cloud.pending||Cloud.conflict||$('#sheet').open||document.hidden||(!force&&(Cloud.fatal||Date.now()<Cloud.retryAt)))return;
  if(!navigator.onLine){Cloud.verified=false;Cloud.error='離線 · 目前顯示已下載的行程';cloudPaint();return;}
  Cloud.reading=true;
- try{const reply=await cloudRequest('GET',null,'?since='+Cloud.revision);if(Cloud.busy||Cloud.pending||$('#sheet').open)return;
+ try{const reply=await cloudRequest('GET',null,'?since='+Cloud.revision);if((typeof EventOrder!=='undefined'&&EventOrder.active())||Cloud.busy||Cloud.pending||$('#sheet').open)return;
   if(reply.revision>Cloud.revision){cloudApply(reply.state,reply.revision);toast('已收到同行朋友的修改');}
   else if(reply.revision===Cloud.revision){verified();cloudPaint();}
  }catch(error){failed(error);cloudPaint();}finally{Cloud.reading=false;}

@@ -2,7 +2,7 @@ from pathlib import Path
 import re, hashlib, json
 root=Path(__file__).resolve().parents[1]/'web'
 if not root.exists(): root=Path(__file__).resolve().parents[3]/'kansai'
-version='reliable-20261109'
+version='trip-tools-20261124'
 html=(root/'index.html').read_text()
 html=re.sub(r'11/08 大阪路線圖版','11/09 穩定同步版',html)
 if 'src="durable-trip.js' not in html: html=html.replace('<script src="cloud.js', '<script src="durable-trip.js"></script><script src="cloud.js')
